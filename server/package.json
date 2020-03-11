@@ -1,0 +1,18 @@
+{
+  "name": "stand_server",
+  "version": "0.0.1",
+  "description": "backend for stand app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "dev": "nodemon index"
+  },
+  "author": "wschwab",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
