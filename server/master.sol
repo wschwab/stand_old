@@ -1,3 +1,7 @@
+// this was a brainstorm about only having user accounts, and artist
+// and projects being plugged into it
+// not currently in use
+
 pragma solidity >=0.4.0 <0.7.0;
 
 contract StandMasterContract {
