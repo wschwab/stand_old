@@ -15,15 +15,15 @@ contract StandMasterContract {
         deleted
     };
 
-    event Created(address contractAddress);
-    event UserCreated(address root, address user, string name);
-    event UserRemoved(address user);
-    event ArtistCreated(address user, address artist);
-    event ArtistRemoved(address user, address artist);
-    event ProjectCreated(address user, address project);
-    event ProjectRemoved(address user, address project);
-
     mapping (address => Types) typeOf;
+
+    event Created(address contractAddress, uint time);
+    event UserCreated(address root, address user, string name, uint time);
+    event UserRemoved(address user, uint time);
+    event ArtistCreated(address user, address artist, uint time);
+    event ArtistRemoved(address user, address artist, uint time);
+    event ProjectCreated(address user, address project, uint time);
+    event ProjectRemoved(address user, address project, uint time);
 
     modifier onlyUser() {
       require(
@@ -34,7 +34,7 @@ contract StandMasterContract {
     }
 
     constructor() {
-      emit Created(this);
+      emit Created(address(this), now);
     }
 
     function createUser(
@@ -45,7 +45,7 @@ contract StandMasterContract {
         isUser[userContract] = true;
         typeOf[userContract] = Types.user;
 
-        emit UserCreated(msg.sender, userContract, name);
+        emit UserCreated(msg.sender, userContract, name, now);
     }
 
     function removeUser(address user) public {
@@ -53,7 +53,7 @@ contract StandMasterContract {
         users.pop(user);
         typeOf[user] == Types.deleted;
 
-        emit UserRemoved(user);
+        emit UserRemoved(user, now);
     }
 
     function addOrRemoveArtist(address artist) public onlyUser {
@@ -64,14 +64,14 @@ contract StandMasterContract {
           artists.push(artist);
           typeOf[artist] = Types.artist;
 
-          emit ArtistCreated(msg.sender, artist);
+          emit ArtistCreated(msg.sender, artist, now);
         } else if (
           typeOf[artist] == Types.artist
         ){
           artists.pop(artist);
           typeOf[artist] = Types.deleted;
 
-          emit ArtistRemoved(msg.sender, artist);
+          emit ArtistRemoved(msg.sender, artist, now);
         } else {
           revert("Something strange happened - you should not be seeing this");
         }
@@ -85,14 +85,14 @@ contract StandMasterContract {
           projects.push(project);
           typeOf[project] = Types.project;
 
-          emit ProjectCreated(msg.sender, project);
+          emit ProjectCreated(msg.sender, project, now);
         } else if (
           typeOf[project] == Types.project
         ){
           projects.pop(project);
           typeOf[project] = Types.deleted;
 
-          emit ProjectRemoved(msg.sender, project);
+          emit ProjectRemoved(msg.sender, project, now);
         } else {
           revert("Something strange happened - you should not be seeing this");
         }
@@ -119,6 +119,15 @@ contract UserContract {
         bool public artist;
     }
 
+    event Liked(address liker, address liked, uint time);
+    event Uniked(address unliker, address unliked, uint time);
+    event Followed(address follower, address followed, uint time);
+    event Unfollowed(address unfollower, address unfollowed, uint time);
+    event Funded(address giver, address recipient, uint amountLocked, uint epochs, string, epochType, uint time);
+    event ProfileEdited(address user, string whichContent, string contentHash, uint time);
+    event CashedOut(address from, address to, uint amount, uint time);
+    event AccountDeleted(address root, address user, uint time);
+
     modifier onlyOwner {
         require(msg.sender == User.root);
         _;
@@ -140,9 +149,7 @@ contract UserContract {
         User.name = _name;
     }
 
-    function createArtist(
-        string name
-    ) public onlyOwner {
+    function createArtist(string name) public onlyOwner {
         require(
           User.artAddress == address(0) &&
           !User.artist,
@@ -155,9 +162,7 @@ contract UserContract {
         master.addArtist(address(artistContract));
     }
 
-    function createProject(
-        string name
-    ) public onlyOwner {
+    function createProject(string name) public onlyOwner {
         address projectContract = new ProjectContract(User.root, name);
         User.projects.push(projectContract);
         master.addProject(address(projectContract));
@@ -182,8 +187,10 @@ contract UserContract {
         // if liker isn't already in likes
         if(isIn(liker, likes)) {
             User.likes.pop(liker);
+            emit Uniked(msg.sender, address(this), now);
         } else {
             User.likes.push(liker);
+            emit Liked(msg.sender, address(this), now)
         }
     }
 
@@ -203,32 +210,46 @@ contract UserContract {
     function getFollowedUnfollowed(address follower) public onlyMember(follower) {
         if(isIn(follower, follows)){
             User.follows.pop(follower);
+            emit Unfollowed(msg.sender, address(this), now);
         } else {
             User.follows.push(follower);
+            emit Followed(msg.sender, address(this), now);
         }
     }
 
-    function fund(address artistOrProject) public onlyOwner {
+    function fund(
+      address payable artistOrProject,
+      uint amountToLock,
+      uint epochs,
+      string epochType
+    ) public payable onlyOwner {
       require(
         master.typeOf[artistOrProject] == Types.artist ||
         master.typeOf[artistOrProject] == Types.project
       )
-        // research subscriptions (EIP 1337?)
+        // research subscriptions (EIP 1337? Sablier?)
 
+      emit Funded(address(this), artistOrProject, amountLocked, epochs, epochType, now);
     }
 
     function editProfile(string whichContent, string newHash) public onlyOwner {
         if(whichContent == 'image') User.image = newHash;
         if(whichContent == 'bio') User.bio == newHash;
+
+        emit ProfileEdited(address(this), whichContent, newHash, now);
     }
 
     function cashOut(uint amount) public onlyOwner {
         User.root.transfer(amount);
+
+        emit CashedOut(address(this), User.root, msg.value, now);
     }
 
     function deleteAccount() public onlyOwner {
         User.root.transfer(this.value);
         master.removeUser(this);
+
+        emit AccountDeleted(msg.sender, address(this), now);
     }
 
     function isIn(address _addr, address[] _array) internal returns(bool){

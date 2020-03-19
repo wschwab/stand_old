@@ -16,3 +16,41 @@ exports.validateCreation = data => {
         valid: Object.keys(errors).length === 0 ? true : false
     }
 }
+
+export default const standMasterAddress = "0x" // should obviously have real address
+export default const standMasterAbi = [
+  "event Created(address contractAddress, uint time)",
+  "event UserCreated(address root, address user, string name, uint time)",
+  "event UserRemoved(address user, uint time)",
+  "event ArtistCreated(address user, address artist, uint time)",
+  "event ArtistRemoved(address user, address artist, uint time)",
+  "event ProjectRemoved(address user, address project, uint time)",
+  "event ProjectRemoved(address user, address project, uint time)",
+  "constructor()",
+  "function createUser(string name)",
+  "function removeUser(address user)",
+  "function addOrRemoveArtist(address artist)"
+]
+
+export default const userAbi = [
+  "event Liked(address liker, address liked, uint time)",
+  "event Uniked(address unliker, address unliked, uint time)",
+  "event Followed(address follower, address followed, uint time)",
+  "event Unfollowed(address unfollower, address unfollowed, uint time)",
+  "event Funded(address giver, address recipient, uint amountLocked, uint epochs, string, epochType, uint time)",
+  "event ProfileEdited(address user, string whichContent, string contentHash, uint time)",
+  "event CashedOut(address from, address to, uint amount, uint time)",
+  "event AccountDeleted(address root, address user, uint time)",
+  "constructor(address _root, string _name)",
+  "function createArtist(string name)",
+  "function createProject(string name)",
+  "function likeUnlike(address toLike)",
+  "function getLikedUnliked(address liker)",
+  "function followUnfollow(address toFollow)",
+  "function getFollowedUnfollowed(address follower)",
+  "function fund(address payable artistOrProject)",
+  "function editProfile(string whichContent, string newHash)",
+  "function cashOut(uint amount)",
+  "function deleteAccount()",
+  "function isIn(address _addr, address[] _array) returns bool"
+]
