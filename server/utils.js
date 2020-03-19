@@ -48,9 +48,24 @@ export default const userAbi = [
   "function getLikedUnliked(address liker)",
   "function followUnfollow(address toFollow)",
   "function getFollowedUnfollowed(address follower)",
+  "function comment(address destination, Comment comment)",
   "function fund(address payable artistOrProject)",
   "function editProfile(string whichContent, string newHash)",
   "function cashOut(uint amount)",
   "function deleteAccount()",
   "function isIn(address _addr, address[] _array) returns bool"
+]
+
+export default const artistOrProjectAbi = [
+  "event Created(address createdBy, address _address, string name, uint time)",
+  "event TierAdded(address artist, uint threshold, uint epochs, string name, uint time)",
+  "event ContentAdded(address artist, string tierName, string contentHash, uint time)",
+  "event FundingReceived(address artist, address donor, uint amount, uint time)",
+  "event CashedOut(address artist. address recipient, uint amount, uint time)",
+  "constructor(address _root, string _name)",
+  "function addTier(uint _threshold, uint _epochs, string _name, string _description)",
+  "function addContent(string _tierName, string _contentHash)",
+  "function getComment(address commentor, Comment comment)",
+  "receive()",
+  "function cashOut(uint amount)"
 ]

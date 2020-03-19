@@ -10,8 +10,7 @@ contract StandMasterContract {
 
     enum Types {
         user,
-        artist,
-        project,
+        artistOrProject,
         deleted
     };
 
@@ -66,7 +65,7 @@ contract StandMasterContract {
 
           emit ArtistCreated(msg.sender, artist, now);
         } else if (
-          typeOf[artist] == Types.artist
+          typeOf[artist] == Types.artistOrProject
         ){
           artists.pop(artist);
           typeOf[artist] = Types.deleted;
@@ -124,7 +123,7 @@ contract UserContract {
     event Followed(address follower, address followed, uint time);
     event Unfollowed(address unfollower, address unfollowed, uint time);
     event Funded(address giver, address recipient, uint amountLocked, uint epochs, string, epochType, uint time);
-    event ProfileEdited(address user, string whichContent, string contentHash, uint time);
+    event ProfileEdited(address user, string contentType, string contentHash, uint time);
     event CashedOut(address from, address to, uint amount, uint time);
     event AccountDeleted(address root, address user, uint time);
 
@@ -151,19 +150,18 @@ contract UserContract {
 
     function createArtist(string name) public onlyOwner {
         require(
-          User.artAddress == address(0) &&
           !User.artist,
           "You already have an artist page"
         );
 
         User.artist = true;
-        address artistContract = new ArtistContract(User.root, name);
+        address artistContract = new ArtistOrProjectContract(User.root, name);
         User.artAddress = artistContract;
         master.addArtist(address(artistContract));
     }
 
     function createProject(string name) public onlyOwner {
-        address projectContract = new ProjectContract(User.root, name);
+        address projectContract = new ArtistProjectContract(User.root, name);
         User.projects.push(projectContract);
         master.addProject(address(projectContract));
     }
@@ -174,16 +172,16 @@ contract UserContract {
         if(master.typeOf[toLike] == Types.user) {
             UserContract user = UserContract(toLike);
             user.getLikedUnliked(address(this));
-        } else if(master.typeOf[toLike] == Types.artist) {
-            ArtistContract artist = ArtistContract(toLike)
-            artist.getLikedUnliked(address(this));
-        } else if(master.typeOf[toLike] == Types.project) {
-            ProjectContract project = ProjectContract(address(this));
-            project.getLikedUnliked(address(this));
+        } else if(master.typeOf[toLike] == Types.artistOrProject) {
+            ArtistOrProjectContract artOrProj = ArtistOrProjectContract(toLike);
+            artOrProj.getLikedUnliked(address(this));
+        } else {
+          revert("Something strange happened - you should not be seeing this");
         }
     }
 
     function getLikedUnliked(address liker) public onlyMember(liker) {
+        require(liker == msg.sender);
         // if liker isn't already in likes
         if(isIn(liker, likes)) {
             User.likes.pop(liker);
@@ -198,16 +196,16 @@ contract UserContract {
         if(master.typeOf[toLike] == Types.user) {
             UserContract user = UserContract(toLike);
             user.getFollowedUnfollowed(address(this));
-        } else if(master.typeOf[toLike] == Types.artist) {
-            ArtistContract artist = ArtistContract(toLike)
-            artist.getFollowedUnfollowed(address(this));
-        } else if(master.typeOf[toLike] == Types.project) {
-            ProjectContract project = ProjectContract(address(this));
-            project.getFollowedUnfollowed(address(this));
+        } else if(master.typeOf[toLike] == Types.artistOrProject) {
+            ArtistOrProjectContract artOrProj = ArtistOrProjectContract(toLike);
+            artOrProj.getFollowedUnfollowed(address(this));
+        } else {
+          revert("Something strange happened - you should not be seeing this");
         }
     }
 
     function getFollowedUnfollowed(address follower) public onlyMember(follower) {
+        require(follower == msg.sender);
         if(isIn(follower, follows)){
             User.follows.pop(follower);
             emit Unfollowed(msg.sender, address(this), now);
@@ -215,6 +213,15 @@ contract UserContract {
             User.follows.push(follower);
             emit Followed(msg.sender, address(this), now);
         }
+    }
+
+    function comment(address destination, Comment comment)
+      public
+      onlyOwner
+      onlyMember(destination) {
+        require(master.typeOf[destination] == Type.artOrProject);
+        ArtistOrProjectContract artOrProj = ArtistOrProjectContract(destination);
+        artOrProj.getComment(address(this), comment);
     }
 
     function fund(
@@ -228,15 +235,16 @@ contract UserContract {
         master.typeOf[artistOrProject] == Types.project
       )
         // research subscriptions (EIP 1337? Sablier?)
+        // different for project (one time) and artist (stream/subscribe)?
 
       emit Funded(address(this), artistOrProject, amountLocked, epochs, epochType, now);
     }
 
-    function editProfile(string whichContent, string newHash) public onlyOwner {
-        if(whichContent == 'image') User.image = newHash;
-        if(whichContent == 'bio') User.bio == newHash;
+    function editProfile(string contentType, string contentHash) public onlyOwner {
+        if(contentType == 'image') User.image = contentHash;
+        if(contentType == 'bio') User.bio == contentHash;
 
-        emit ProfileEdited(address(this), whichContent, newHash, now);
+        emit ProfileEdited(address(this), contentType, contentHash, now);
     }
 
     function cashOut(uint amount) public onlyOwner {

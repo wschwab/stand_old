@@ -2,7 +2,7 @@ import { ethers } from 'ethers'
 const {
         StandMasterContract,
         provider
-      } = require('./index') // hope that's right
+      } = require('./index')
 const {
         validateCreation,
         standMasterAddress,
@@ -24,24 +24,6 @@ exports.createUser = (req, res) => {
     const { valid, errors } = validateCreation(newUser)
 
     if(!valid) return res.status(400).json(errors)
-
-    // I think I'll just pretend there's money in the account for now
-    //// TODO: add in stage to charge up account
-
-    const nonce = provider.getTransactionCount(newUser.address)
-      .then(txCount => txCount)
-    const gasPrice = provider.getGasPrice()
-      .then(_gasPrice => _gasPrice.toString())
-
-    const createUserTx = {
-      to: standMasterAddress,
-      nonce,
-      gasLimit: 0, // dunno how to calculate this or value yet
-      gasPrice,
-      value: 0,
-      chainId: 5, //goerli
-      data: 0 // dunno
-    }
 
     let contractWithSigner = StandMasterContract.connect(wallet)
     let tx = await contractWithSigner.createUser(newUser.root, newUser.name)
@@ -120,15 +102,53 @@ exports.fund = (req, res) => {
       chainId: 5, //goerli
       data: 0 // dunno
     }
+
+    let signPromise = wallet.sign(fundUserContract)
+
+    signPromise.then((signedTx) => {
+      provider.sendTransaction(signedTx)
+        .then(tx => {
+          console.log(tx)
+        })
+    })
   }
 
   const UserContract = new ethers.Contract(User.address, userAbi, provider) // this will probably have already been done elsewhere, and should be removed then
   let contractWithSigner = UserContract.connect(wallet)
-  let tx = contractWithSigner.fund()
+  let tx = contractWithSigner.fund(
+    req.body.artistOrProject,
+    req.body.amountToLock,
+    req.body.epochs,
+    req.body.epochType
+  )
+
+  await tx.await()
 
   UserContract.on("Funded", (giver, recipient, amountLocked, epochs, epochType, time) => {
     console.log(`${giver} has locked ${amountLocked} towards ${recipient} to be paid out ${epochType} ${epochs} times`)
   })
+}
+
+exports.editProfile = (req, res) => {
+  assert(req.body.contentType && req.body.content)
+  assert(req.body.contentType === "image" || req.body.contentType === "bio")
+
+  // the logic for interacting with Swarm and getting a hash should probably be here
+  const contentHash = 0x
+
+  const UserContract = new ethers.Contract(User.address, userAbi, provider) // this will probably have already been done elsewhere, and should be removed then
+  let contractWithSigner = UserContract.connect(wallet)
+  let tx = contractWithSigner.editAccount(req.body.contentType, contentHash)
+
+  await tx.await()
+
+  UserContract.on("ProfileEdited", (user, contentType, contentHash, time) => {
+    console.log(`${user} changed the ${contentType} hash to ${contentHash}`)
+  })
+}
+
+exports.cashOut = (req, res) => {
+  
 }
 
 exports.deleteAccount = (req, res) => {
@@ -139,4 +159,8 @@ exports.deleteAccount = (req, res) => {
   UserContract.on("AccountDeleted", (root, user, time) => {
     console.log(`Account ${root} deleted user ${user}, time: ${time}`)
   })
+}
+
+exports.getProfile = (req, res) => {
+
 }
