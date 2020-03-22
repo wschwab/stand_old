@@ -1,4 +1,5 @@
-import { ethers } from 'ethers'
+const ethers = require('ethers')
+
 const {
         StandMasterContract,
         provider
@@ -82,6 +83,18 @@ exports.followOrUnfollow = (req, res) => {
   // need to know which ABI to import in order to connect and listen
 }
 
+exports.comment = (req, res) => {
+  assert(req.body.comment) // need to check that it's not an empty string
+let comment = req.body.comment
+// use erebos to upload this to swarm and get a hash
+// this is technically unencrypted content that anyone could view
+  // for comments that might not be so bad
+
+  const UserContract = new ethers.Contract(User.address, userAbi, provider) // this will probably have already been done elsewhere, and should be removed then
+  let contractWithSigner = UserContract.connect(wallet)
+  let tx = await contractWithSigner.comment(commentHash)
+}
+
 exports.fund = (req, res) => {
   if(req.body.addToAccount && parseint(req.body.addToAccount) > 0){
     const wallet = new ethers.Wallet(User.root.privkey, provider) // should actually be an authentication step
@@ -148,7 +161,7 @@ exports.editProfile = (req, res) => {
 }
 
 exports.cashOut = (req, res) => {
-  
+
 }
 
 exports.deleteAccount = (req, res) => {

@@ -6,7 +6,7 @@ import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
 import CircularProgress from '@material-ui/core/CircularProgress'
 
-const NewAccount = () => {
+export const NewAccount = () => {
   const [userData, setUserData] = useState({
       name: '',
       errors: {}
@@ -61,7 +61,8 @@ const NewAccount = () => {
               <TextField id="address" name="address" type="text" label="address"
               className="create_address" value={userData.address}
               error={userData.errors.address ? true : false} fullWidth />
-              // some kind of Aragon DAO options
+              // options: type of account (Aragon, Gnosis Safe)
+              // options: kinds of recovery, social recovery, decentralized key server
             }
             <br />
             <Button type="submit" variant="contained" color="primary" className={classes.button} disabled={loading}>

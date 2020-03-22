@@ -1,24 +1,26 @@
 const isEmpty = string => {
-    if(string.trim() === '') return true
-    else return false
+  if (string.trim() === '') return true
+  else return false
 }
 
 exports.validateCreation = data => {
-    let errors = {}
+  let errors = {}
 
-    if(isEmpty(data.name)) {
-        errors.name = "Name required"
-    }
-    //need an address validator here
+  if (isEmpty(data.name)) {
+    errors.name = "Name required"
+  }
+  //need an address validator here
 
-    return {
-        errors,
-        valid: Object.keys(errors).length === 0 ? true : false
-    }
+  return {
+    errors,
+    valid: Object.keys(errors).length === 0 ? true : false
+  }
 }
 
-export default const standMasterAddress = "0x" // should obviously have real address
-export default const standMasterAbi = [
+export default
+const standMasterAddress = "0x" // should obviously have real address
+export default
+const standMasterAbi = [
   "event Created(address contractAddress, uint time)",
   "event UserCreated(address root, address user, string name, uint time)",
   "event UserRemoved(address user, uint time)",
@@ -32,7 +34,8 @@ export default const standMasterAbi = [
   "function addOrRemoveArtist(address artist)"
 ]
 
-export default const userAbi = [
+export default
+const userAbi = [
   "event Liked(address liker, address liked, uint time)",
   "event Uniked(address unliker, address unliked, uint time)",
   "event Followed(address follower, address followed, uint time)",
@@ -56,7 +59,8 @@ export default const userAbi = [
   "function isIn(address _addr, address[] _array) returns bool"
 ]
 
-export default const artistOrProjectAbi = [
+export default
+const artistOrProjectAbi = [
   "event Created(address createdBy, address _address, string name, uint time)",
   "event TierAdded(address artist, uint threshold, uint epochs, string name, uint time)",
   "event ContentAdded(address artist, string tierName, string contentHash, uint time)",
