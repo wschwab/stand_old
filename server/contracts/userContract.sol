@@ -111,9 +111,11 @@ contract UserContract {
         string public image; // should point to storage hash of a default image
         string public bio; // I think this should also just be a link
         address public artAddress;
-        address[] public likes;
-        address[] public follows;
-        address[] public isFunding;
+        address[] public likedBy;
+        address[] public followedBy;
+        address[] public IFund;
+        address[] public ILike;
+        address[] public IFollow;
         address[] public projects;
         bool public artist;
     }
@@ -172,9 +174,11 @@ contract UserContract {
         if(master.typeOf[toLike] == Types.user) {
             UserContract user = UserContract(toLike);
             user.getLikedUnliked(address(this));
+            // need a way to check for success, then update ILike
         } else if(master.typeOf[toLike] == Types.artistOrProject) {
             ArtistOrProjectContract artOrProj = ArtistOrProjectContract(toLike);
             artOrProj.getLikedUnliked(address(this));
+            // need a way to check for success, then update ILike
         } else {
           revert("Something strange happened - you should not be seeing this");
         }
@@ -184,10 +188,10 @@ contract UserContract {
         require(liker == msg.sender);
         // if liker isn't already in likes
         if(isIn(liker, likes)) {
-            User.likes.pop(liker);
+            User.likedBy.pop(liker);
             emit Uniked(msg.sender, address(this), now);
         } else {
-            User.likes.push(liker);
+            User.likedBy.push(liker);
             emit Liked(msg.sender, address(this), now)
         }
     }
@@ -196,9 +200,11 @@ contract UserContract {
         if(master.typeOf[toLike] == Types.user) {
             UserContract user = UserContract(toLike);
             user.getFollowedUnfollowed(address(this));
+            // need a way to check for success, then update IFollow
         } else if(master.typeOf[toLike] == Types.artistOrProject) {
             ArtistOrProjectContract artOrProj = ArtistOrProjectContract(toLike);
             artOrProj.getFollowedUnfollowed(address(this));
+            // need a way to check for success, then update IFollow
         } else {
           revert("Something strange happened - you should not be seeing this");
         }
@@ -207,10 +213,10 @@ contract UserContract {
     function getFollowedUnfollowed(address follower) public onlyMember(follower) {
         require(follower == msg.sender);
         if(isIn(follower, follows)){
-            User.follows.pop(follower);
+            User.followedBy.pop(follower);
             emit Unfollowed(msg.sender, address(this), now);
         } else {
-            User.follows.push(follower);
+            User.followedBy.push(follower);
             emit Followed(msg.sender, address(this), now);
         }
     }

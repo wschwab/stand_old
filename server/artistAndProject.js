@@ -53,5 +53,24 @@ exports.atrprojCashOut = (req, res) => {
 }
 
 exports.getArtprojProfile = (req, res) => {
+  const ArtistOrProjectContract = new ethers.Contract(ArtOrProj.address, userAbi, provider) // this will probably have already been done elsewhere, and should be removed then
+  let profile = await ArtistOrProjectContract.ArtistOrProject
 
+  console.log(
+    `Artist or Project profile:
+      root: ${profile.root}
+      user: ${profile.user}
+      name: ${profile.name}
+      image: ${profile.image}
+      deadline: ${profile.deadline || "none"}
+      tiers: ${profile.tiers}
+      likedBy: ${profile.likes}
+      followedBy: ${profile.follows}
+      fundedBy: ${profile.fundedBy}
+      content: ${profile.content}
+      comments: ${profile.comments}
+      `
+  )
+
+  return profile
 }

@@ -71,5 +71,7 @@ const artistOrProjectAbi = [
   "function addContent(string _tierName, string _contentHash)",
   "function getComment(address commentor, Comment comment)",
   "receive()",
-  "function cashOut(uint amount)"
+  "function cashOut(uint amount)",
+  "function getLikedUnliked(address liker)",
+  "function getFollowedUnfollowed(address follower)"
 ]

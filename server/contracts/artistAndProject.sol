@@ -18,7 +18,7 @@ contract ArtistAndProjectContract {
 
     struct Content {
       string public tierName;
-      string public contentHash;
+      string public contentHash; // encryption to keep it private?
     }
 
     struct Comment {
@@ -33,6 +33,9 @@ contract ArtistAndProjectContract {
       uint public deadline; //uint should be timestamp
       string public image; // should point to storage hash of a default image
       Tier[] public tiers;
+      address[] public likes;
+      address[] public follows;
+      address[] public fundedBy;
       Content[] public content;
       mapping (uint => Comment) public comments; // uint should be timestamps? Idea is to allow easy chronological sort
       // problem - all comments mined in one block have the same timestamp
@@ -126,5 +129,28 @@ contract ArtistAndProjectContract {
         ArtistOrProject.root.transfer(amount);
 
         emit CashedOut(address(this), ArtistOrProject.root, amount, now);
+    }
+
+    function getLikedUnliked(address liker) public onlyMember(liker) {
+        require(liker == msg.sender);
+        // if liker isn't already in likes
+        if(isIn(liker, likes)) {
+            ArtistOrProject.likedBy.pop(liker);
+            emit Uniked(msg.sender, address(this), now);
+        } else {
+            ArtistOrProject.likedBy.push(liker);
+            emit Liked(msg.sender, address(this), now)
+        }
+    }
+
+    function getFollowedUnfollowed(address follower) public onlyMember(follower) {
+        require(follower == msg.sender);
+        if(isIn(follower, follows)){
+            ArtistOrProject.followedBy.pop(follower);
+            emit Unfollowed(msg.sender, address(this), now);
+        } else {
+            ArtistOrProject.followedBy.push(follower);
+            emit Followed(msg.sender, address(this), now);
+        }
     }
 }

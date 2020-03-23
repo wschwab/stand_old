@@ -175,5 +175,23 @@ exports.deleteAccount = (req, res) => {
 }
 
 exports.getProfile = (req, res) => {
+  const UserContract = new ethers.Contract(User.address, userAbi, provider) // this will probably have already been done elsewhere, and should be removed then
+  let profile = await UserContract.User
 
+  console.log(
+    `User profile:
+      root: ${profile.root}
+      name: ${profile.name}
+      image: ${profile.image}
+      bio: ${profile.bio}
+      artist page address: ${profile.artAddress || "none"}
+      liked by: ${profile.likedBy}
+      followed by: ${profile.followedBy}
+      funds: ${profile.IFund}
+      likes: ${profile.ILike}
+      follows" ${profile.IFollow}
+      projects: ${profile.projects || "none"}`
+  )
+
+  return profile
 }
