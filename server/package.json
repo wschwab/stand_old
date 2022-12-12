@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "ethers": "^4.0.45",
-    "express": "^4.17.1"
+    "express": "^4.17.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.2"
